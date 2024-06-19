@@ -86,6 +86,10 @@ public class SocketController {
 					updateDataList(received);
 
 					break;
+				case "CHAT_ALL":
+					onReceiveMess(received);
+					break;
+					
 				default:
 					break;
 				}
@@ -123,6 +127,12 @@ public class SocketController {
 			ClientRun.openView(ClientRun.ViewName.HOME_VIEW);
 
 		}
+	}
+	private void onReceiveMess(String received) {
+		String [] parts = received.split(";");
+		String userName = parts[1];
+		String mess = parts[2];
+		ClientRun.textPane(userName, mess);
 	}
 
 	private boolean isConnected() {

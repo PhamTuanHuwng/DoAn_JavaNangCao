@@ -74,7 +74,7 @@ public class HomeView extends JFrame {
 				ClientRun.getSocketController().sendMess(getUserName(), textArea.getText());
 				
 				textArea.setText("");
-			}
+			}	
 		});
 		btnNewButton.setFont(new Font("Arial", Font.BOLD, 15));
 		btnNewButton.setBounds(594, 390, 158, 63);

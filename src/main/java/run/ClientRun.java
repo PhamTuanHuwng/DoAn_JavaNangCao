@@ -89,4 +89,7 @@ public class ClientRun {
 			return;
 		homeView.setOnlineList(names);
 	}
+	public static void textPane(String username,String mess) {
+		homeView.updateTextPane(username,mess);
+	}
 }

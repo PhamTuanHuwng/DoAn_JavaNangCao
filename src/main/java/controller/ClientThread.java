@@ -39,6 +39,7 @@ public class ClientThread implements Runnable {
 					handleLogin(request);
 					break;
 				case "CHAT_ALL":
+					handleMess(request);
 					break;
 				default:
 					break;
@@ -61,6 +62,9 @@ public class ClientThread implements Runnable {
 			System.err.println("Mất ket noi: " + ex.getMessage());
 		}
 
+	}
+	private void handleMess(String request) {
+		ServerRun.getClientThreadManager().broadcast(request);
 	}
 
 	private void handleLogin(String request) {
