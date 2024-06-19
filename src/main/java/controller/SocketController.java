@@ -68,7 +68,10 @@ public class SocketController {
 
 		}
 	}
-
+	public void sendMess(String username, String mess) {
+		String data = "CHAT_ALL;" + username + ";" + mess;
+		sendDataToServer(data);
+	}
 	private void listen() {
 		while (true) {
 			try {
