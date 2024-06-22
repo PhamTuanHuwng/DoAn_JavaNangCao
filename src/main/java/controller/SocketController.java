@@ -72,6 +72,10 @@ public class SocketController {
 		String data = "CHAT_ALL;" + username + ";" + mess;
 		sendDataToServer(data);
 	}
+	public void sendPrivateMessage(String sender, String receiver, String message) {
+		String data = "PRIVATE_MESSAGE;" + sender + ";" + receiver + ";" + message;
+		System.out.println(data);
+	}
 	private void listen() {
 		while (true) {
 			try {

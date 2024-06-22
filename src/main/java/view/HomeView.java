@@ -5,6 +5,10 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
 
 import controller.SocketController;
 import run.ClientRun;
@@ -22,6 +26,7 @@ import javax.swing.JTextArea;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.awt.event.ActionEvent;
 import java.awt.Color;
 
@@ -33,6 +38,7 @@ public class HomeView extends JFrame {
 	private DefaultListModel<String> listModel;
 	private JList listOnline;
 	private JTextPane textPane;
+	private HTMLDocument doc;
 
 	public HomeView() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,6 +66,8 @@ public class HomeView extends JFrame {
 
 		textPane = new JTextPane();
 		textPane.setContentType("text/html");
+		doc = (HTMLDocument) textPane.getStyledDocument();
+
 		scrollPane_1.setViewportView(textPane);
 
 		JTextArea textArea = new JTextArea();
@@ -69,12 +77,54 @@ public class HomeView extends JFrame {
 		JButton btnNewButton = new JButton("Gửi");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(textArea.getText().trim().isEmpty())
+				String message = textArea.getText().trim();
+				if (message.isEmpty())
 					return;
-				ClientRun.getSocketController().sendMess(getUserName(), textArea.getText());
-				
+
+				boolean isPrivateMessage = false;
+				String recipient = null;
+				String content = message;
+
+				// Kiểm tra nếu tin nhắn chứa tên người dùng với ký tự '@'
+				if (message.contains("@")) {
+					int atIndex = message.indexOf("@");
+					int spaceIndex = message.indexOf(" ", atIndex);
+
+					// Nếu có khoảng trắng sau '@'
+					if (spaceIndex != -1) {
+						// Tìm kiếm tên người dùng có thể bao gồm nhiều từ
+						for (int i = spaceIndex + 1; i < message.length(); i++) {
+							char c = message.charAt(i);
+							if (Character.isWhitespace(c) || i == message.length() - 1) {
+								String potentialRecipient = message
+										.substring(atIndex + 1, i == message.length() - 1 ? i + 1 : i).trim();
+								if (listModel.contains(potentialRecipient)) {
+									recipient = potentialRecipient;
+									content = message.substring(i == message.length() - 1 ? i + 1 : i).trim();
+									isPrivateMessage = true;
+									break;
+								}
+							}
+						}
+					} else {
+						// Nếu không có khoảng trắng sau '@', xem toàn bộ phần sau '@' là tên người dùng
+						String potentialRecipient = message.substring(atIndex + 1).trim();
+						if (listModel.contains(potentialRecipient)) {
+							recipient = potentialRecipient;
+							content = "";
+							isPrivateMessage = true;
+						}
+					}
+				}
+
+				if (isPrivateMessage) {
+					ClientRun.getSocketController().sendPrivateMessage(getUserName(), recipient, content);
+				} else {
+					ClientRun.getSocketController().sendMess(getUserName(), content);
+				}
+
 				textArea.setText("");
-			}	
+			}
 		});
 		btnNewButton.setFont(new Font("Arial", Font.BOLD, 15));
 		btnNewButton.setBounds(594, 390, 158, 63);
@@ -87,9 +137,13 @@ public class HomeView extends JFrame {
 
 		scrollPane.setViewportView(listOnline);
 
-		String initialContent = "<html><head><style>"
+		String initialContent = "<html><head><style>" + "* {padding: 0; margin: 0; box-sizing: border-box;}"
 				+ "body {background-color: #242526; color: white; font-family: Arial, sans-serif; margin: 0; padding: 1px;}"
-				+ ".self {text-align: right; color: white;}" + ".other {text-align: left; color: white}"
+				+ ".self {text-align: right; color: white;background-color:#0084FE}"
+				+ ".other {text-align: left; color: white;background-color: gray;}"
+				+ ".mess {display: flex;gap: 15px;align-items: center;}"
+				+ "img {max-width: 28px;height: 28px;object-fit: cover;object-position: center;}"
+				+ "span {max-width: 50%;padding: 8px 12px;border-radius: 20px;display: inline-block; word-wrap: break-word;word-break: break-word;}"
 				+ "</style></head><body></body></html>";
 		textPane.setText(initialContent);
 
@@ -125,8 +179,15 @@ public class HomeView extends JFrame {
 	}
 
 	public void updateTextPane(String username, String mess) {
-		String alignmentClass = username.equals(getUserName()) ? "self" : "other";
-		String formattedMessage = String.format("<div class='%s'>%s: %s</div>", alignmentClass, username, mess);
+		String userClass = username.equals(getUserName()) ? "self" : "other";
+		String formattedMessage;
+		if (userClass.equals("self")) {
+			formattedMessage = String.format("<div class='%s'> <span>%s</span>:%s</div>", userClass, mess, "You");
+
+		} else {
+			formattedMessage = String.format("<div class='%s'>%s: <span>%s</span></div>", userClass, username, mess);
+
+		}
 
 		String currentContent = textPane.getText();
 		int bodyEndIndex = currentContent.lastIndexOf("</body>");
@@ -134,4 +195,5 @@ public class HomeView extends JFrame {
 
 		textPane.setText(updatedContent);
 	}
+
 }
