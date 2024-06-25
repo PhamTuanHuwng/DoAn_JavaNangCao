@@ -39,9 +39,25 @@ public class UserDAO {
 //		}
 //		return null;
 //	}
+	public boolean register(UserModel user) {
+        	Transaction transaction = null;
+        	try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            		transaction = session.beginTransaction();
+            		session.save(user);
+            		transaction.commit();
+            		return true;
+        	} catch (Exception e) {
+            		if (transaction != null) {
+                		transaction.rollback();
+            		}
+            		e.printStackTrace();
+            		return false;
+        	}
+    	}
 	public UserModel login(UserModel user) {
 		String userName = user.getUserName();
-		String passWord = user.getPassWord();
+//		String passWord = user.getPassWord();
+		String passWord = PasswordUtil.hashPassword(user.getPassWord()); // Mã hóa mật khẩu trước khi kiểm tra
 		UserModel loggedInUser = null;
 		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 			loggedInUser = session
