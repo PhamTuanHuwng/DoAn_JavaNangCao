@@ -7,14 +7,16 @@ import controller.ClientThreadManager;
 import controller.SocketController;
 import view.HomeView;
 import view.LoginView;
+import view.RegisterView;
 
 public class ClientRun {
 	private static SocketController socketController;
 	private static LoginView loginView;
 	private static HomeView homeView;
+	private static RegisterView registerView;
 
 	public enum ViewName {
-		LOGIN_VIEW, HOME_VIEW
+		LOGIN_VIEW, HOME_VIEW, REGISTER_VIEW
 	}
 
 	public static void main(String[] args) {
@@ -25,6 +27,7 @@ public class ClientRun {
 		socketController = new SocketController();
 		loginView = new LoginView();
 		homeView = new HomeView();
+		registerView = new RegisterView();
 		openView(ViewName.LOGIN_VIEW);
 
 	}
@@ -37,6 +40,10 @@ public class ClientRun {
 				break;
 			case HOME_VIEW:
 				homeView.setVisible(true);
+				break;
+			case REGISTER_VIEW: 
+				registerView.setVisible(true);
+				break;
 
 			default:
 				break;
@@ -53,11 +60,21 @@ public class ClientRun {
 			case HOME_VIEW:
 				homeView.dispose();
 				break;
-
+			case REGISTER_VIEW:
+				registerView.dispose();
+				break;
 			default:
 				break;
 			}
 		}
+	}
+
+	public static RegisterView getRegisterView() {
+		return registerView;
+	}
+
+	public static void setRegisterView(RegisterView registerView) {
+		ClientRun.registerView = registerView;
 	}
 
 	public static SocketController getSocketController() {

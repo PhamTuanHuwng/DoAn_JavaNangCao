@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Iterator;
 
 import dao.UserDAO;
 import model.UserModel;
@@ -16,6 +17,7 @@ public class ClientThread implements Runnable {
 	private DataInputStream dIn;
 	private DataOutputStream dOut;
 	private UserModel userModel;
+	private UserDAO userDao;
 
 	public ClientThread(Socket socket) throws IOException {
 		this.socket = socket;
@@ -41,6 +43,11 @@ public class ClientThread implements Runnable {
 				case "CHAT_ALL":
 					handleMess(request);
 					break;
+				case "REGISTER":
+					handleRegister(request);
+					break;
+				case "PRIVATE_MESSAGE":
+					handlePrivateMess(request);
 				default:
 					break;
 				}
@@ -66,6 +73,22 @@ public class ClientThread implements Runnable {
 	private void handleMess(String request) {
 		ServerRun.getClientThreadManager().broadcast(request);
 	}
+	private void handlePrivateMess(String request) {
+		//"PRIVATE_MESSAGE;" + sender + ";" + receiver + ";" + message;
+		String[] parts = request.split(";");
+		String sender = parts[1];
+		String receiver = parts[2];
+		String mess = parts[3];
+
+		for (ClientThread client : ServerRun.getClientThreadManager().getClientThreads()) {
+			if(client.getUserModel().getFullName().equals(receiver)&&client.getUserModel().getFullName().equals(sender)) {
+			
+				String data = "PRIVATE_MESSAGE;"+sender+";"+mess;
+				client.sendDataToClient(data);
+			}
+		}
+	}
+	
 
 	private void handleLogin(String request) {
 		String[] splitted = request.split(";");
@@ -76,7 +99,7 @@ public class ClientThread implements Runnable {
 		if (isLogedIn) {
 			sendDataToClient("LOGIN;failed;Tài khoản đã được đăng nhập ở nơi khác");
 		} else {
-			UserDAO userDao = new UserDAO();
+			 userDao = new UserDAO();
 			UserModel newUserLogin = new UserModel(username, password);
 			UserModel loggedInUser = userDao.login(newUserLogin);
 
@@ -92,6 +115,29 @@ public class ClientThread implements Runnable {
 		}
 	}
 
+	private void handleRegister(String request) {
+		String[] splitted = request.split(";");
+		String username = splitted[1];
+		String password = splitted[2];
+		String fullname = splitted[3];
+		
+		
+		UserModel newUser = new UserModel(username, password, fullname);
+		userDao = new UserDAO();
+		boolean isExist =  userDao.isUserNameExists(username);
+		if(isExist) {
+			sendDataToClient("REGISTER;failed;Tài khoản đã tồn tại");
+			return;
+
+		}
+	    boolean isRegistered = userDao.register(newUser);
+	    if (isRegistered) {
+	        sendDataToClient("REGISTER;success;Đăng ký thành công");
+	    } else {
+	        sendDataToClient("REGISTER;failed;Đăng ký thất bại");
+	    }
+		
+	}
 	public void sendDataToClient(String format) {
 		try {
 			dOut.writeUTF(format);

@@ -69,8 +69,8 @@ public class LoginView extends JFrame {
         btnNewButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 
-                String userName = textName.getText();
-                String passWord = String.valueOf(textPass.getPassword());
+                String userName = textName.getText().trim();
+                String passWord = String.valueOf(textPass.getPassword()).trim();
                 if (userName.equals("")) {
                     JOptionPane.showMessageDialog(null, "Tên đăng nhập rỗng");
                     textName.requestFocus();
@@ -92,9 +92,8 @@ public class LoginView extends JFrame {
         btnngK = new JButton("Đăng Ký");
         btnngK.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                RegisterView registerView = new RegisterView();
-                registerView.setVisible(true);
-                dispose();
+               ClientRun.closeView(ClientRun.ViewName.LOGIN_VIEW);
+               ClientRun.openView(ClientRun.ViewName.REGISTER_VIEW);
             }
         });
         btnngK.setFont(new Font("Arial", Font.BOLD, 20));

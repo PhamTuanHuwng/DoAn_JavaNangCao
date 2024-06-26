@@ -14,51 +14,47 @@ import util.PasswordUtil;
 
 public class UserDAO {
 
-//	Statement stm = null;
-//	PreparedStatement pstm = null;
-//	ResultSet rs = null;
-//	Connection conn = null;
 
-//	public UserModel login(UserModel user) {
-//		String userName = user.getUserName();
-//		String passWord = user.getPassWord();
-//		String sql = "SELECT * FROM AccountUser where Username=? and Password=?";
-//		try {
-//			pstm = conn.prepareStatement(sql);
-//			pstm.setString(1, userName);
-//			pstm.setString(2, passWord);
-//			rs = pstm.executeQuery();
-//			if(rs.next()) {
-//                UserModel loggedInUser = new UserModel();
-//                loggedInUser.setUserName(rs.getString("Username"));
-//                loggedInUser.setPassWord(rs.getString("Password"));
-//                loggedInUser.setFullName(rs.getString("Fullname"));
-//                return loggedInUser;
-//			}
-//		} catch (Exception e) {
-//			return null;
-//		}
-//		return null;
-//	}
-	public boolean register(UserModel user) {
-        	Transaction transaction = null;
-        	try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            		transaction = session.beginTransaction();
-            		session.save(user);
-            		transaction.commit();
-            		return true;
-        	} catch (Exception e) {
-            		if (transaction != null) {
-                		transaction.rollback();
-            		}
-            		e.printStackTrace();
-            		return false;
-        	}
-    	}
+	 public boolean isUserNameExists(String userName) {
+	        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+	            Long count = session
+	                    .createQuery("SELECT COUNT(u) FROM UserModel u WHERE u.userName = :username", Long.class)
+	                    .setParameter("username", userName)
+	                    .uniqueResult();
+	            return count > 0;
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            return false;
+	        }
+	    }
+	 public boolean register(UserModel user) {
+	        if (isUserNameExists(user.getUserName())) {
+	            return false; // Không đăng ký nếu tên người dùng đã tồn tại
+	        }
+
+	        // Mã hóa mật khẩu trước khi lưu vào cơ sở dữ liệu
+	        String hashedPassword = PasswordUtil.hashPassword(user.getPassWord());
+	        user.setPassWord(hashedPassword);
+
+	        Transaction transaction = null;
+	        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+	            transaction = session.beginTransaction();
+	            session.save(user);
+	            transaction.commit();
+	            return true;
+	        } catch (Exception e) {
+	            if (transaction != null) {
+	                transaction.rollback();
+	            }
+	            e.printStackTrace();
+	            return false;
+	        }
+	    }
+	
 	public UserModel login(UserModel user) {
 		String userName = user.getUserName();
-		String passWord = user.getPassWord();
-//		String passWord = PasswordUtil.hashPassword(user.getPassWord()); // Mã hóa mật khẩu trước khi kiểm tra
+//		String passWord = user.getPassWord();
+		String passWord = PasswordUtil.hashPassword(user.getPassWord()); // Mã hóa mật khẩu trước khi kiểm tra
 		UserModel loggedInUser = null;
 		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 			loggedInUser = session

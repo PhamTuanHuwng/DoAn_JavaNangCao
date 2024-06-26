@@ -52,6 +52,11 @@ public class SocketController {
 		sendDataToServer(data);
 	}
 
+	public void register(String username, String password, String fullname) {
+		String data = "REGISTER;" + username + ";" + password + ";" + fullname;
+		sendDataToServer(data);
+	}
+
 	public void sendDataToServer(String data) {
 		if (!isConnected()) {
 			System.err.println("Not connected to server. Cannot perform login.");
@@ -68,14 +73,17 @@ public class SocketController {
 
 		}
 	}
+
 	public void sendMess(String username, String mess) {
 		String data = "CHAT_ALL;" + username + ";" + mess;
 		sendDataToServer(data);
 	}
+
 	public void sendPrivateMessage(String sender, String receiver, String message) {
 		String data = "PRIVATE_MESSAGE;" + sender + ";" + receiver + ";" + message;
-		System.out.println(data);
+		sendDataToServer(data);
 	}
+
 	private void listen() {
 		while (true) {
 			try {
@@ -93,8 +101,15 @@ public class SocketController {
 				case "CHAT_ALL":
 					onReceiveMess(received);
 					break;
-					
+
+				case "REGISTER":
+					onReceiveRegister(received);
+					break;
+				case "PRIVATE_MESSAGE":
+					onReceiveMess(received);
+					break;
 				default:
+
 					break;
 				}
 			} catch (Exception e) {
@@ -132,11 +147,29 @@ public class SocketController {
 
 		}
 	}
+	
 	private void onReceiveMess(String received) {
-		String [] parts = received.split(";");
+		String[] parts = received.split(";");
 		String userName = parts[1];
 		String mess = parts[2];
 		ClientRun.textPane(userName, mess);
+	}
+
+	private void onReceiveRegister(String received) {
+		// REGISTER;success;Đăng ký thành công
+		// REGISTER;failed;Đăng ký thất bại
+		String[] parts = received.split(";");
+		String status = parts[1];
+		String mess = parts[2];
+		if (status.equals("failed")) {
+			JOptionPane.showMessageDialog(ClientRun.getRegisterView(), mess, "Lỗi", JOptionPane.ERROR_MESSAGE);
+		} else if (status.equals("success")) {
+			JOptionPane.showMessageDialog(ClientRun.getRegisterView(), mess, "Thành công",
+					JOptionPane.INFORMATION_MESSAGE);
+			ClientRun.closeView(ClientRun.ViewName.REGISTER_VIEW);
+			ClientRun.openView(ClientRun.ViewName.LOGIN_VIEW);
+		}
+
 	}
 
 	private boolean isConnected() {
