@@ -1,4 +1,4 @@
-package view;
+	package view;
 
 import java.awt.Color;
 import javax.swing.JFrame;
@@ -7,6 +7,7 @@ import javax.swing.border.EmptyBorder;
 
 import dao.UserDAO;
 import model.UserModel;
+import run.ClientRun;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -77,18 +78,9 @@ public class LoginView extends JFrame {
                     JOptionPane.showMessageDialog(null, "Mật khẩu rỗng");
                     textPass.requestFocus();
                 } else {
-                    UserDAO userDAO = new UserDAO();
-                    UserModel user = new UserModel();
-                    user.setUserName(userName);
-                    user.setPassWord(passWord);
+                	ClientRun.getSocketController().connect();
+					ClientRun.getSocketController().login(userName, passWord);
 
-                    UserModel loggedInUser = userDAO.login(user);
-                    if (loggedInUser != null) {
-                        JOptionPane.showMessageDialog(null, "Đăng nhập thành công");
-                        // Tiếp tục thực hiện sau khi đăng nhập thành công
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Tên đăng nhập hoặc mật khẩu không đúng");
-                    }
                 }
             }
         });

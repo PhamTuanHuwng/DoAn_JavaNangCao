@@ -10,6 +10,7 @@ import org.hibernate.Transaction;
 
 import model.UserModel;
 import util.HibernateUtil;
+import util.PasswordUtil;
 
 public class UserDAO {
 
@@ -56,8 +57,8 @@ public class UserDAO {
     	}
 	public UserModel login(UserModel user) {
 		String userName = user.getUserName();
-//		String passWord = user.getPassWord();
-		String passWord = PasswordUtil.hashPassword(user.getPassWord()); // Mã hóa mật khẩu trước khi kiểm tra
+		String passWord = user.getPassWord();
+//		String passWord = PasswordUtil.hashPassword(user.getPassWord()); // Mã hóa mật khẩu trước khi kiểm tra
 		UserModel loggedInUser = null;
 		try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 			loggedInUser = session
